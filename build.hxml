@@ -1,0 +1,4 @@
+--library hlx11
+--class-path src
+--main Main
+--hl bin/hxwm.hl
