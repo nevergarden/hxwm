@@ -32,8 +32,22 @@ class Wm {
 			Sys.exit(1);
 		}
 
+		// Query Children that don't have parent window manager.
 		X11.grabServer(display);
+		var windowsRef : hl.Ref<hl.NativeArray<Window>> = hl.Ref.make(new hl.NativeArray<Window>(0));
+		var rootRef : hl.Ref<Null<Window>> = hl.Ref.make(null);
+		var parentRef : hl.Ref<Null<Window>> = hl.Ref.make(null);
+		// ---
+		X11.queryTree(display, root, rootRef, parentRef, windowsRef);
+		var children : hl.NativeArray<Window> = windowsRef.get();
+		trace(children);
+		X11.ungrabServer(display);
+		// --- End
 
+		// Handle WM events
+		while(true) {
+			X11.nextEvent(display);
+		}
 	}
 
 	private function alreadyHasWMHandler( display : XDisplayPtr, event : XErrorEventType ) : Int {
