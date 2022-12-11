@@ -10,6 +10,8 @@ class Wm {
 	private var display : XDisplayPtr;
 	private var root : Window;
 
+	private var win2Frame : Map<Window, Window> = new Map<Window, Window>();
+
 	private var has_wm : Bool = false;
 
 	public function new( ?displayString : String = null ) {
@@ -41,21 +43,41 @@ class Wm {
 		// ---
 		X11.queryTree(display, root, rootRef, parentRef, windowsRef);
 		var children : hl.NativeArray<Window> = windowsRef.get();
-		trace(children);
+		for (child in children) {
+			frameWindow(child, true);
+		}
 		X11.ungrabServer(display);
 		// --- End
 
 		// Handle WM events
 		while(true) {
 			X11.nextEvent(display);
+			var type = X11.getXEventType();
 		}
 	}
 
 	private function frameWindow( window : Window, is_wm_init : Bool = false ) {
-		var winAttributesRef : hl.Ref<x11.X11.XWindowAttributes> = x11.X11.XWindowAttributes.getRef();
-		X11.getWindowAttributes( display, window, winAttributesRef );
-		var winAttributes = winAttributesRef.get();
-		trace(winAttributes.x);
+		trace(win2Frame.get(window));
+		if(win2Frame.get(window) != null)
+			return;
+
+		var winAttr : XWindowAttributes = new XWindowAttributes();
+		X11.getWindowAttributes( display, window, winAttr );
+
+		if(is_wm_init) {
+			// if(winAttr.override_redirect || winAttr.map_state != 2)
+			// 	return;
+		}
+
+		trace('before frame');
+		var frame : Window = X11.createSimpleWindow(display, root, winAttr.x, winAttr.y, winAttr.width, winAttr.height, 10, 0x005060, 0x500000);
+		X11.selectInput(display, frame, EventMask.SubstructureNotifyMask | EventMask.SubstructureRedirectMask);
+		trace('after input');
+		X11.addToSaveSet(display, window);
+		X11.reparentWindow(display, window, frame, 0, 0);
+		X11.mapWindow(display, frame);
+		win2Frame.set(window, frame);
+		trace('${window} framed');
 	}
 
 	private function alreadyHasWMHandler( display : XDisplayPtr, event : XErrorEventType ) : Int {
