@@ -3,6 +3,7 @@ package hxwm;
 import x11.XEventType.EventMask;
 import haxe.Exception;
 import x11.X11;
+import x11.X11.XWindowAttributes;
 
 class Wm {
 
@@ -48,6 +49,13 @@ class Wm {
 		while(true) {
 			X11.nextEvent(display);
 		}
+	}
+
+	private function frameWindow( window : Window, is_wm_init : Bool = false ) {
+		var winAttributesRef : hl.Ref<x11.X11.XWindowAttributes> = x11.X11.XWindowAttributes.getRef();
+		X11.getWindowAttributes( display, window, winAttributesRef );
+		var winAttributes = winAttributesRef.get();
+		trace(winAttributes.x);
 	}
 
 	private function alreadyHasWMHandler( display : XDisplayPtr, event : XErrorEventType ) : Int {
