@@ -77,6 +77,9 @@ class Wm {
 		X11.reparentWindow(display, window, frame, 0, 0);
 		X11.mapWindow(display, frame);
 		win2Frame.set(window, frame);
+
+		X11.grabKey(display, 0, KeyMask.ControlMask | KeyMask.ShiftMask, window, false, GrabMode.Async, GrabMode.Async);
+
 		trace('${window} framed');
 	}
 
